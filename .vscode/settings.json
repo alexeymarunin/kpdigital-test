@@ -1,0 +1,18 @@
+{
+    "php.suggest.basic": false,
+    "editor.quickSuggestions": { "comments": true },
+    "intelephense.files.exclude": [
+        "**/.git/**",
+        "**/.svn/**",
+        "**/.hg/**",
+        "**/CVS/**",
+        "**/.DS_Store/**",
+        "**/node_modules/**",
+        "**/bower_components/**",
+        "**/vendor/**/{Test,test,Tests,tests}/*Test.php"
+    ],
+    "telemetry.enableTelemetry": false,
+    "phpcs.executablePath": "/usr/local/bin/phpcs",
+    "phpcs.standard": "PSR2",
+    "phpcs.ignorePatterns": ["vendor/*"]
+}
