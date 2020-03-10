@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Link;
+use App\Entity\User;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
@@ -11,8 +13,6 @@ use Doctrine\Common\Persistence\ManagerRegistry;
  * @method Link|null findOneBy(array $criteria, array $orderBy = null)
  * @method Link[]    findAll()
  * @method Link[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- * @method Link      saveLink(string $original, $pretty)
- * @method void      removeLink(Link $link)
  */
 class LinkRepository extends ServiceEntityRepository
 {
@@ -23,23 +23,57 @@ class LinkRepository extends ServiceEntityRepository
 
     /**
      * @param string $original
+     * @param string $pretty
+     * @param User $user
      * @return Link
      */
-    public function saveLink(string $original, string $pretty): Link
+    public function create(string $original, string $pretty, User $user): Link
     {
         $link = new Link();
         $link->setOriginal($original);
         $link->setPretty($pretty);
-        $this->getEntityManager()->persist($link);
-        $this->getEntityManager()->flush();
+        $link->setUser($user);
         return $link;
+    }
+
+    public function findOneByIdAndUser(int $id, User $user): ?Link
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.id = :id')
+            ->andWhere('l.user = :user')
+            ->setParameter('id', $id)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findOneByPrettyAndUser(string $pretty, User $user): ?Link
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.pretty = :pretty')
+            ->andWhere('l.user = :user')
+            ->setParameter('pretty', $pretty)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findOneByOriginalAndUser(string $original, User $user): ?Link
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.original = :original')
+            ->andWhere('l.user = :user')
+            ->setParameter('original', $original)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     /**
      * @param Link $link
      * @return Link
      */
-    public function updateLink(Link $link): Link
+    public function save(Link $link): Link
     {
         $this->getEntityManager()->persist($link);
         $this->getEntityManager()->flush();
@@ -49,38 +83,9 @@ class LinkRepository extends ServiceEntityRepository
     /**
      * @param Link $link
      */
-    public function removeLink(Link $link)
+    public function remove(Link $link)
     {
         $this->getEntityManager()->remove($link);
         $this->getEntityManager()->flush();
     }
-
-    // /**
-    //  * @return Link[] Returns an array of Link objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('l.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Link
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

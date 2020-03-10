@@ -3,8 +3,8 @@
 namespace App\Service;
 
 use App\Repository\LinkRepository;
-
-use Psr\Container\ContainerInterface;
+use App\Entity\Link;
+use App\Entity\User;
 
 class LinkService
 {
@@ -18,47 +18,46 @@ class LinkService
         $this->linkRepository = $linkRepository;
     }
 
-    public function getLink(int $id)
+    public function getLink(int $id, User $user)
     {
-        return $this->linkRepository->find($id);
+        return $this->linkRepository->findOneByIdAndUser($id, $user);
     }
 
-    public function getOriginalUrl(string $pretty)
+    public function getOriginalUrl(string $pretty, User $user): ?string
     {
-        $link = $this->linkRepository->findOneBy(['pretty' => $pretty]);
+        $link = $this->linkRepository->findOneByPrettyAndUser($pretty, $user);
         return $link ? $link->getOriginal() : '';
     }
 
-    public function getAllLinks()
+    public function getAllLinks(User $user)
     {
-        return $this->linkRepository->findAll();
+        return $this->linkRepository->findByUser($user);
     }
 
-    public function addLink(string $original)
+    public function addLink(string $original, User $user): Link
     {
-        $link = $this->linkRepository->findOneBy(['original' => $original]);
+        $link = $this->linkRepository->findOneByOriginalAndUser($original, $user);
         if (!$link) {
             $pretty = $this->generatePrettyHash($original);
-            $link = $this->linkRepository->saveLink($original, $pretty);
+            $link = $this->linkRepository->create($original, $pretty, $user);
+            return $this->linkRepository->save($link);
         }
         return $link;
     }
 
-    public function updateLink($link, string $original)
+    public function updateLink(Link $link, string $original): Link
     {
-        $pretty = $this->generatePrettyHash($original);
-        $link->setPretty($pretty);
         $link->setOriginal($original);
-        return $this->linkRepository->updateLink($link);
+        return $this->linkRepository->save($link);
     }
 
-    public function removeLink($link)
+    public function removeLink(Link $link)
     {
-        $this->linkRepository->removeLink($link);
+        $this->linkRepository->remove($link);
     }
 
     private function generatePrettyHash(string $original)
     {
-        return hash('crc32', $original);
+        return hash('sha1', $original);
     }
 }

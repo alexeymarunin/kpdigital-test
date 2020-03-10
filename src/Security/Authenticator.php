@@ -48,7 +48,7 @@ class Authenticator extends AbstractGuardAuthenticator
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
     {
         $data = [
-            'message' => $exception->getMessageKey(),
+            'message' => 'Authentication Required',
         ];
         return new JsonResponse($data, 401);
     }

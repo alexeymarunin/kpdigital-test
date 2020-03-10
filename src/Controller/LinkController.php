@@ -7,6 +7,7 @@ use App\Service\LinkService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Serializer\SerializerInterface;
 
 class LinkController extends AbstractController
 {
@@ -26,7 +27,8 @@ class LinkController extends AbstractController
     public function getLink(int $id)
     {
         $link = $this->findLink($id);
-        return $this->json($link);
+        $data = $this->getSerializer()->normalize($link, 'json', ['groups' => 'public']);
+        return $this->json($data);
     }
 
     /**
@@ -34,8 +36,10 @@ class LinkController extends AbstractController
      */
     public function getAllLinks()
     {
-        $links = $this->linkService->getAllLinks();
-        return $this->json($links);
+        $user = $this->getUser();
+        $links = $this->linkService->getAllLinks($user);
+        $data = $this->getSerializer()->normalize($links, 'json', ['groups' => 'public']);
+        return $this->json($data);
     }
 
     /**
@@ -43,7 +47,8 @@ class LinkController extends AbstractController
      */
     public function goLink(string $pretty)
     {
-        $url = $this->linkService->getOriginalUrl($pretty);
+        $user = $this->getUser();
+        $url = $this->linkService->getOriginalUrl($pretty, $user);
         if (!$url) {
             throw $this->createNotFoundException('No link found');
         }
@@ -55,10 +60,12 @@ class LinkController extends AbstractController
      */
     public function addNewLink(Request $request)
     {
+        $user = $this->getUser();
         $data = $this->getSerializer()->decode($request->getContent(), 'json');
         $original = $data['url'];
-        $link = $this->linkService->addLink($original);
-        return $this->json($link);
+        $link = $this->linkService->addLink($original, $user);
+        $data = $this->getSerializer()->normalize($link, 'json', ['groups' => 'public']);
+        return $this->json($data);
     }
 
     /**
@@ -68,9 +75,10 @@ class LinkController extends AbstractController
     {
         $link = $this->findLink($id);
         $data = $this->getSerializer()->decode($request->getContent(), 'json');
-        $original  = $data['url'];
+        $original = $data['url'];
         $link = $this->linkService->updateLink($link, $original);
-        return $this->json($link);
+        $data = $this->getSerializer()->normalize($link, 'json', ['groups' => 'public']);
+        return $this->json($data);
     }
 
     /**
@@ -78,6 +86,7 @@ class LinkController extends AbstractController
      */
     public function removeLink(int $id)
     {
+        $user = $this->getUser();
         $link = $this->findLink($id);
         $this->linkService->removeLink($link);
         return $this->json(null, 204);
@@ -85,7 +94,8 @@ class LinkController extends AbstractController
 
     private function findLink($id)
     {
-        $link = $this->linkService->getLink($id);
+        $user = $this->getUser();
+        $link = $this->linkService->getLink($id, $user);
         if (!$link) {
             throw $this->createNotFoundException('No link found');
         }
