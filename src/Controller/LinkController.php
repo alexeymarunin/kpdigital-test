@@ -39,7 +39,7 @@ class LinkController extends AbstractController
     }
 
     /**
-     * @Route("/{pretty}", name="go_link", methods={"GET"})
+     * @Route("/go/{pretty}", name="go_link", methods={"GET"})
      */
     public function goLink(string $pretty)
     {
