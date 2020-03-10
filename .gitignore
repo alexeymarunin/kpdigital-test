@@ -1,3 +1,5 @@
+/docker/mysql/data/
+*.log
 
 ###> symfony/framework-bundle ###
 /.env.local
